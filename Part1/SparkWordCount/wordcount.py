@@ -37,7 +37,7 @@ if __name__ == "__main__":
     counts = lines.flatMap(lambda x: x.split(' ')) \
                   .map(lambda x: (x, 1)) \
                   .reduceByKey(add)
-    
+ ## modified output to write to hdfs file   
     counts.saveAsTextFile("hdfs:///user/path")
 
     spark.stop()
