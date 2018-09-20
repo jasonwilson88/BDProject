@@ -1,4 +1,4 @@
-import sqlContext.implicits._
+import SqlContext.implicits._
 
 import org.apache.hadoop.fs.{FileSystem,Path}
 FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
@@ -17,3 +17,14 @@ wordCountHashTags.orderBy(desc("count")).coalesce(1).write.json("/sortedAndCount
 then 
 
 bin/hadoop fs -copyToLocal /sortedAndCountedBySpark ~/sortedAndCountedSparkCoalesce
+
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.show()
+df.createOrReplaceTempView("tweets")
+scala> val urlDf = spark.sql("SELECT entities.urls.url FROM tweets")
+val urls = urlDf.withColumn("url", explode(urlDf.col("url")))
+val wordCountUrls = urls.groupBy("url").count()
+wordCountUrls.orderBy(desc("count")).coalesce(1).write.json("/urlsSortedAndCountedScala")
