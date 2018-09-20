@@ -1,0 +1,30 @@
+import SqlContext.implicits._
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.show()
+df.createOrReplaceTempView("tweets")
+spark.sql("SELECT entities FROM tweets LIMIT 20")
+val entityDf = spark.sql("SELECT entities FROM tweets")
+entityDf.createOrReplaceTempView("entities")
+spark.sql("SELECT hashtags FROM entities LIMIT 20")
+val entityDf = spark.sql("SELECT entities.hashtags.text FROM tweets")
+val hashtags = entityDf.withColumn("text", explode(entityDf.col("text")))
+val wordCountHashTags = hashtags.groupBy("text").count()
+wordCountHashTags.orderBy(desc("count")).coalesce(1).write.json("/sortedAndCountedBySpark")
+
+then 
+
+bin/hadoop fs -copyToLocal /sortedAndCountedBySpark ~/sortedAndCountedSparkCoalesce
+
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.show()
+df.createOrReplaceTempView("tweets")
+scala> val urlDf = spark.sql("SELECT entities.urls.url FROM tweets")
+val urls = urlDf.withColumn("url", explode(urlDf.col("url")))
+val wordCountUrls = urls.groupBy("url").count()
+wordCountUrls.orderBy(desc("count")).coalesce(1).write.json("/urlsSortedAndCountedScala")

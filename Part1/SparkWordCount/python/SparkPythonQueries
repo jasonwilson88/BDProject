@@ -1,0 +1,24 @@
+import os
+execfile(os.path.join(os.environ["SPARK_HOME"], 'python/pyspark/shell.py'))
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import explode
+
+spark = SparkSession.builder.appName("JSONRead").getOrCreate()
+jsonData = spark.read.json("hdfs:///user/path/tweets.json")
+hash = jsonData.select(explode("entities.hashtags").alias("hashtag")).select("hashtag.text")
+hash.write.csv(path="hdfs:///user/path/hashtags.csv")
+
+text_file = sc.textFile("hdfs:///user/hashtags.csv")
+counts = text_file.flatMap(lambda line: line.split(" ")) \
+             .map(lambda word: (word, 1)) \
+             .reduceByKey(lambda a, b: a + b)
+counts.saveAsTextFile("hdfs:///user/path/SparkHashtags_out")
+
+urls = jsonData.select(explode("entities.urls").alias("urls")).select("urls.url")
+urls.write.csv(path="hdfs:///user/path/urls.csv")
+text_file = sc.textFile("hdfs:///user/path/urls.csv")
+
+counts = text_file.flatMap(lambda line: line.split(" ")) \
+             .map(lambda word: (word, 1)) \
+             .reduceByKey(lambda a, b: a + b)
+counts.saveAsTextFile("hdfs:///user/path/urls_out")
