@@ -2,7 +2,7 @@
 
 Part 1:
 
-Tweets were collected in json format using the python files found in Part1/Collection
+Tweets were collected in json format using the python code found in Part1/Collection. This code was found at https://stackoverflow.com/questions/45940984/python-twitter-stream-save-to-file
 
 Hashtags and urls were extracted from the tweets using Apache Spark with both python and scala on different collections of tweets
 
