@@ -1,0 +1,10 @@
+Keyword: beer.
+
+1) Top brands by social media presence (retweets, tweets, followers, or tweet counts)
+2) Top Hashtagged beers/beer brands
+3) Time series beer tweets by sporting events/other large beer consumption activites (Octoberfest)
+4) Top beers/brands by locality
+5) Top verified twitter users that drink/hashtag/tweet about beer
+6) Statistics regarding beer tweets with multimedia
+7) Beer by language (e.g. what are the top beers for tweets by a given language?)
+8) User mentions / brand mentions
