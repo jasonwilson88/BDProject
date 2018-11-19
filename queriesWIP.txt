@@ -1,0 +1,38 @@
+Keyword: beer.
+
+1) Top brands by social media presence (retweets, tweets, followers, or tweet counts)
+Jason
+2) Top Hashtagged beers/beer brands
+Max
+3) Time series beer tweets by sporting events/other large beer consumption activites (Octoberfest)
+Jack
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.createOrReplaceTempView("tweets")
+val temp = spark.sql("SELECT created_at AS timee, COUNT(*) AS countt FROM tweets GROUP BY created_at ORDER BY timee")
+
+		damn twitter not using SQL acceptable timestamps. If I wanted to write my own datetime converter I'd go work for fucking oracle
+		https://www.google.com/search?client=ubuntu&channel=fs&q=converting+custom+format+to+sql+datetime&ie=utf-8&oe=utf-8
+
+temp.show()
+
+
+4) Top beers/brands by locality
+Jason
+5) Top verified twitter users that drink/hashtag/tweet about beer
+Max
+6) Statistics regarding beer tweets with multimedia
+Jack
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.createOrReplaceTempView("tweets")
+spark.sql("SELECT created_at, entities.media FROM tweets WHERE entities.media IS NOT null").show()
+
+7) Beer by language (e.g. what are the top beers for tweets by a given language?)
+Max
+8) User mentions / brand mentions
+Jason and Jack
