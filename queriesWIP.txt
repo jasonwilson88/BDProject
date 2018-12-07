@@ -11,12 +11,10 @@ import org.apache.hadoop.fs.{FileSystem,Path}
 FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
 val df = spark.read.json("hdfs://localhost:9000/tweets.json")
 df.createOrReplaceTempView("tweets")
-val temp = spark.sql("SELECT created_at AS timee, COUNT(*) AS countt FROM tweets GROUP BY created_at ORDER BY timee")
-
-		damn twitter not using SQL acceptable timestamps. If I wanted to write my own datetime converter I'd go work for fucking oracle
-		https://www.google.com/search?client=ubuntu&channel=fs&q=converting+custom+format+to+sql+datetime&ie=utf-8&oe=utf-8
-
+val temp = spark.sql("SELECT date_trunc('day', TO_TIMESTAMP(timestamp_ms/1000)) AS timee, COUNT(*) AS countt FROM tweets GROUP BY date_trunc('day', TO_TIMESTAMP(timestamp_ms/1000)) ORDER BY timee")
 temp.show()
+temp.coalesce(1).write.json("/tweetCountByDate")
+
 
 
 4) Top beers/brands by locality
@@ -30,9 +28,21 @@ import org.apache.hadoop.fs.{FileSystem,Path}
 FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
 val df = spark.read.json("hdfs://localhost:9000/tweets.json")
 df.createOrReplaceTempView("tweets")
-spark.sql("SELECT created_at, entities.media FROM tweets WHERE entities.media IS NOT null").show()
+val temp = spark.sql("SELECT DISTINCT entities.media.media_url[0] FROM tweets WHERE entities.media.media_url IS NOT null")
+temp.show()
+temp.coalesce(1).write.json("/mediaUrls")
+
 
 7) Beer by language (e.g. what are the top beers for tweets by a given language?)
 Max
 8) User mentions / brand mentions
 Jason and Jack
+
+9) Tweets by hour
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.createOrReplaceTempView("tweets")
+val temp = spark.sql("SELECT date_trunc('hour', TO_TIMESTAMP(timestamp_ms/1000)) AS timee, COUNT(*) AS countt FROM tweets GROUP BY date_trunc('hour', TO_TIMESTAMP(timestamp_ms/1000)) ORDER BY timee")
+temp.show()
+temp.coalesce(1).write.json("/tweetCountByHour")

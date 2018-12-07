@@ -1,0 +1,11 @@
+3) Time series beer tweets by sporting events/other large beer consumption activites (Octoberfest)
+Jack
+
+IN SPARK SHELL:
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.createOrReplaceTempView("tweets")
+val temp = spark.sql("SELECT date_trunc('day', TO_TIMESTAMP(timestamp_ms/1000)) AS timee, COUNT(*) AS countt FROM tweets GROUP BY date_trunc('day', TO_TIMESTAMP(timestamp_ms/1000)) ORDER BY timee")
+temp.show()
+temp.coalesce(1).write.json("/tweetCountByDate")
