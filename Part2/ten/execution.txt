@@ -1,0 +1,118 @@
+jack@jack-XPS-9560:~/BDProject$ $SPARK_HOME/bin/spark-shell 
+2018-12-07 23:17:55 WARN  Utils:66 - Your hostname, jack-XPS-9560 resolves to a loopback address: 127.0.1.1; using 192.168.1.5 instead (on interface wlp2s0)
+2018-12-07 23:17:55 WARN  Utils:66 - Set SPARK_LOCAL_IP if you need to bind to another address
+2018-12-07 23:17:55 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+Spark context Web UI available at http://192.168.1.5:4040
+Spark context available as 'sc' (master = local[*], app id = local-1544246281602).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.3.1
+      /_/
+         
+Using Scala version 2.11.8 (OpenJDK 64-Bit Server VM, Java 1.8.0_181)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> import org.apache.hadoop.fs.{FileSystem,Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
+
+scala> FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+hdfs://localhost:9000/mediaUrls
+hdfs://localhost:9000/sortedAndCounted
+hdfs://localhost:9000/sortedAndCountedBySpark
+hdfs://localhost:9000/tmp
+hdfs://localhost:9000/tweetCountByDate
+hdfs://localhost:9000/tweetCountByDate2
+hdfs://localhost:9000/tweets.json
+hdfs://localhost:9000/urlsSortedAndCountedScala
+
+scala> val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+2018-12-07 23:18:29 WARN  ObjectStore:6666 - Version information not found in metastore. hive.metastore.schema.verification is not enabled so recording the schema version 1.2.0
+2018-12-07 23:18:29 WARN  ObjectStore:568 - Failed to get database default, returning NoSuchObjectException
+2018-12-07 23:18:30 WARN  ObjectStore:568 - Failed to get database global_temp, returning NoSuchObjectException
+2018-12-07 23:18:36 WARN  Utils:66 - Truncated the string representation of a plan since it was too large. This behavior can be adjusted by setting 'spark.debug.maxToStringFields' in SparkEnv.conf.
+df: org.apache.spark.sql.DataFrame = [contributors: string, coordinates: struct<coordinates: array<double>, type: string> ... 36 more fields]
+
+scala> df.createOrReplaceTempView("tweets")
+
+scala> val temp = spark.sql("SELECT * FROM tweets WHERE possibly_sensitive = TRUE")
+temp: org.apache.spark.sql.DataFrame = [contributors: string, coordinates: struct<coordinates: array<double>, type: string> ... 36 more fields]
+
+scala> temp.show()
++------------+-----------+--------------------+------------------+--------------------+--------------------+--------------------+--------------+---------+------------+----+-------------------+-------------------+-----------------------+---------------------+-------------------------+-------------------+-----------------------+---------------+----+-----+------------------+-----------+--------------------+-------------------+--------------------+-----------------------+-----------+-------------+---------+--------------------+--------------------+--------------------+--------------------+-------------+---------+--------------------+---------------------+
+|contributors|coordinates|          created_at|display_text_range|            entities|   extended_entities|      extended_tweet|favorite_count|favorited|filter_level| geo|                 id|             id_str|in_reply_to_screen_name|in_reply_to_status_id|in_reply_to_status_id_str|in_reply_to_user_id|in_reply_to_user_id_str|is_quote_status|lang|place|possibly_sensitive|quote_count|       quoted_status|   quoted_status_id|quoted_status_id_str|quoted_status_permalink|reply_count|retweet_count|retweeted|    retweeted_status|           sentiment|              source|                text| timestamp_ms|truncated|                user|withheld_in_countries|
++------------+-----------+--------------------+------------------+--------------------+--------------------+--------------------+--------------+---------+------------+----+-------------------+-------------------+-----------------------+---------------------+-------------------------+-------------------+-----------------------+---------------+----+-----+------------------+-----------+--------------------+-------------------+--------------------+-----------------------+-----------+-------------+---------+--------------------+--------------------+--------------------+--------------------+-------------+---------+--------------------+---------------------+
+|        null|       null|Tue Sep 11 19:58:...|              null|[[], [[,, pic.twi...|[[[,, pic.twitter...|                null|             0|    false|         low|null|1039604225226035200|1039604225226035200|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 07...|          [0.0, 0.0]|<a href="http://t...|RT @Tsholanang_L:...|1536695936863|    false|[false, Wed May 2...|                 null|
+|        null|       null|Tue Sep 11 20:04:...|              null|[[[[37, 43], Plut...|[[[[,, false,],, ...|                null|             0|    false|         low|null|1039605706754850818|1039605706754850818|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Fri Jul 14 20...|[0.19015151515151...|<a href="http://t...|RT @NASANewHorizo...|1536696290087|    false|[false, Mon Jul 0...|                 null|
+|        null|       null|Tue Sep 11 20:06:...|              null|[[],, [], [[cnbc....|                null|                null|             0|    false|         low|null|1039606097169063938|1039606097169063938|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|        [0.375, 0.5]|<a href="http://t...|Dow rises more th...|1536696383169|    false|[false, Mon Mar 0...|                 null|
+|        null|       null|Tue Sep 11 20:12:...|              null|[[], [[[,, false,...|[[[[,, false,],, ...|                null|             0|    false|         low|null|1039607630405267459|1039607630405267459|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 20...|          [0.1, 1.0]|<a href="http://t...|RT @AFRIKANBXI: W...|1536696748721|    false|[false, Fri Mar 1...|                 null|
+|        null|       null|Tue Sep 11 20:13:...|              null|[[],, [], [[ow.ly...|                null|                null|             0|    false|         low|null|1039607884844335104|1039607884844335104|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 19...|     [-0.34375, 0.6]|<a href="http://t...|RT @BDliveSA: SA'...|1536696809384|    false|[false, Sat Mar 1...|                 null|
+|        null|       null|Tue Sep 11 20:16:...|              null|[[],, [], [[9to5m...|                null|                null|             0|    false|         low|null|1039608539453505536|1039608539453505536|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Fri Sep 07 21...|          [0.6, 0.9]|<a href="https://...|RT @YessieAnne: P...|1536696965455|    false|[false, Sun Mar 2...|                 null|
+|        null|       null|Tue Sep 11 20:17:...|              null|[[], [[[,, false,...|[[[[,, false,],, ...|                null|             0|    false|         low|null|1039608920418000896|1039608920418000896|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 20...|          [0.1, 1.0]|<a href="http://t...|RT @AFRIKANBXI: W...|1536697056284|    false|[false, Thu Jul 0...|                 null|
+|        null|       null|Tue Sep 11 20:22:...|              null|[[[[16, 19], AI],...|                null|                null|             0|    false|         low|null|1039610118676131840|1039610118676131840|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 20...|          [0.0, 0.0]|<a href="http://t...|RT @BigDataGal: #...|1536697341971|    false|[false, Sat Apr 0...|                 null|
+|        null|       null|Tue Sep 11 20:23:...|              null|[[],, [], [[tnw.m...|                null|                null|             0|    false|         low|null|1039610342366699520|1039610342366699520|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Tue Sep 11 20...|         [0.25, 0.3]|<a href="https://...|RT @TheNextWeb: H...|1536697395303|    false|[false, Mon Jan 0...|                 null|
+|        null|       null|Tue Sep 11 20:24:...|         [32, 140]|[[],, [], [[twitt...|                null|[[32, 280], [[], ...|             0|    false|         low|null|1039610549410189312|1039610549410189312|        StephenFagan117|  1039607550570848262|      1039607550570848262|           19393556|               19393556|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|          [0.0, 0.0]|<a href="http://t...|@StephenFagan117 ...|1536697444666|     true|[false, Sun Jan 1...|                 null|
+|        null|       null|Tue Sep 11 20:27:...|              null|[[],, [], [[patre...|                null|[[0, 179], [[],, ...|             0|    false|         low|null|1039611363734237188|1039611363734237188|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|          [0.0, 0.0]|<a href="https://...|&lt;a href="https...|1536697638816|     true|[false, Thu Mar 2...|                 null|
+|        null|       null|Tue Sep 11 20:28:...|           [0, 53]|[[], [[,, pic.twi...|[[[,, pic.twitter...|                null|             0|    false|         low|null|1039611671432572928|1039611671432572928|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|          [0.2, 0.2]|<a href="https://...|Hurricanes and Ec...|1536697712177|    false|[false, Mon Feb 1...|                 null|
+|        null|       null|Tue Sep 11 20:28:...|         [19, 140]|[[],, [], [[break...|                null|[[19, 264], [[],,...|             0|    false|         low|null|1039611727724179457|1039611727724179457|               kuffodog|  1039609352506626048|      1039609352506626048|           59434294|               59434294|           true|  en| null|              true|          0|[,, Tue Jul 24 08...|1021669140107390976| 1021669140107390976|   [twitter.com/kuff...|          0|            0|    false|                null|          [0.0, 0.0]|<a href="http://t...|@marsrader @100YS...|1536697725598|     true|[false, Thu Jul 2...|                 null|
+|        null|       null|Tue Sep 11 20:30:...|              null|[[],, [], [[twitt...|                null|                null|             0|    false|         low|null|1039612099507441664|1039612099507441664|                   null|                 null|                     null|               null|                   null|           true|  en| null|              true|          0|[,, Tue Sep 11 14...|1039527312197382144| 1039527312197382144|   [twitter.com/veer...|          0|            0|    false|[,, Tue Sep 11 17...|[0.09444444444444...|<a href="http://t...|RT @rctatman: Thi...|1536697814238|    false|[false, Fri Apr 3...|                 null|
+|        null|       null|Tue Sep 11 20:33:...|              null|[[],, [], [[twitt...|                null|                null|             0|    false|         low|null|1039613019142189057|1039613019142189057|                   null|                 null|                     null|               null|                   null|           true|  en| null|              true|          0|[,, Sat Sep 08 15...|1038449647210123265| 1038449647210123265|   [twitter.com/fuck...|          0|            0|    false|[,, Tue Sep 11 18...|          [0.0, 1.0]|<a href="http://t...|RT @fuckmckenzie:...|1536698033496|    false|[false, Sat Dec 1...|                 null|
+|        null|       null|Tue Sep 11 20:35:...|              null|[[],, [], [[green...|                null|                null|             0|    false|         low|null|1039613362592657408|1039613362592657408|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|         [-0.2, 0.3]|<a href="http://p...|Marijuana: Green ...|1536698115381|    false|[false, Mon Dec 0...|                 null|
+|        null|       null|Tue Sep 11 20:38:...|              null|[[],, [], [[redli...|                null|                null|             0|    false|         low|null|1039614215223422977|1039614215223422977|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|                null|          [0.2, 0.2]|<a href="https://...|Hurricanes and Ec...|1536698318664|    false|[false, Mon Feb 1...|                 null|
+|        null|       null|Thu Sep 13 22:08:...|              null|[[],, [], [[twitt...|                null|                null|             0|    false|         low|null|1040361480393302016|1040361480393302016|                   null|                 null|                     null|               null|                   null|           true|  en| null|              true|          0|[,, Wed Sep 12 17...|1039934231818817536| 1039934231818817536|   [twitter.com/vari...|          0|            0|    false|[,, Wed Sep 12 18...|          [0.2, 0.2]|<a href="http://t...|RT @j00nszn: If y...|1536876480564|    false|[false, Wed Feb 2...|                 null|
+|        null|       null|Thu Sep 13 22:09:...|              null|[[],, [], [[mklnd...|                null|                null|             0|    false|         low|null|1040361946812428288|1040361946812428288|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Thu Sep 13 22...|          [0.0, 0.0]|<a href="https://...|RT @W130SN: Radiu...|1536876591767|    false|[false, Sat Aug 2...|                 null|
+|        null|       null|Thu Sep 13 22:10:...|              null|[[],, [], [[nyti....|                null|                null|             0|    false|         low|null|1040362143680475136|1040362143680475136|                   null|                 null|                     null|               null|                   null|          false|  en| null|              true|          0|                null|               null|                null|                   null|          0|            0|    false|[,, Thu Sep 13 18...|[0.31818181818181...|<a href="http://t...|RT @neil_ruiz: Ne...|1536876638704|    false|[false, Sat Jun 3...|                 null|
++------------+-----------+--------------------+------------------+--------------------+--------------------+--------------------+--------------+---------+------------+----+-------------------+-------------------+-----------------------+---------------------+-------------------------+-------------------+-----------------------+---------------+----+-----+------------------+-----------+--------------------+-------------------+--------------------+-----------------------+-----------+-------------+---------+--------------------+--------------------+--------------------+--------------------+-------------+---------+--------------------+---------------------+
+only showing top 20 rows
+
+
+scala> val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE possibly_sensitive = TRUE")
+temp: org.apache.spark.sql.DataFrame = [count(1): bigint]
+
+scala> temp.show()
++--------+                                                                      
+|count(1)|
++--------+
+|     559|
++--------+
+
+
+scala> val temp = spark.sql("SELECT COUNT(*) FROM tweets")
+temp: org.apache.spark.sql.DataFrame = [count(1): bigint]
+
+scala> temp.show()
++--------+                                                                      
+|count(1)|
++--------+
+|  102936|
++--------+
+
+
+scala> val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE entities.media.media_url IS NOT null AND possibly_sensitive = TRUE")
+temp: org.apache.spark.sql.DataFrame = [count(1): bigint]
+
+scala> temp.show()
++--------+                                                                      
+|count(1)|
++--------+
+|      41|
++--------+
+
+
+scala> val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE entities.media.media_url IS NOT null")
+temp: org.apache.spark.sql.DataFrame = [count(1): bigint]
+
+scala> temp.show()
++--------+                                                                      
+|count(1)|
++--------+
+|    3396|
++--------+
+
+
+scala> jack@jack-XPS-9560:~/BDProject$ 

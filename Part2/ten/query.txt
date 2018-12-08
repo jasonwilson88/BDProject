@@ -1,0 +1,20 @@
+10) Percentage of "sensitive" tweets
+
+IN SPARK SHELL:
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/tweets.json")
+df.createOrReplaceTempView("tweets")
+val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE possibly_sensitive = TRUE")
+// write temp number somewhere (number of sensitive tweets)
+val temp = spark.sql("SELECT COUNT(*) FROM tweets")
+// write temp number somewhere (number of tweets total)
+
+559/102936 = 0.5% of total collected
+
+val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE entities.media.media_url IS NOT null AND possibly_sensitive = TRUE") 
+// write down temp number (number of sensitive tweets w/ media urls)
+val temp = spark.sql("SELECT COUNT(*) FROM tweets WHERE entities.media.media_url IS NOT null")
+// write down temp number (number of tweets w/ media urls)
+
+41/3396 = 1.2%
