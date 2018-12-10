@@ -2,8 +2,43 @@ Keyword: beer.
 
 1) Top brands by social media presence (retweets, tweets, followers, or tweet counts)
 Jason
-2) Top Hashtagged beers/beer brands
+2) Beer by citys in all of the world Comparation
 Max
+
+SPARK:
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+val city = spark.sql("SELECT user.location as city FROM tweets WHERE user.location != 'null' and user.location != 'United States' and  user.location != 'USA'")
+city.createOrReplaceTempView("cityts")
+val city_count = spark.sql("SELECT city as city_name, COUNT(*) AS counts FROM cityts GROUP BY city_name ORDER BY counts")
+var city_count = city_count.orderBy(desc("counts"))
+
+PYSPARK:
+
+import findspark
+findspark.init()
+import pyspark as ps
+import warnings
+from pyspark.sql import SQLContext
+sc = ps.SparkContext('local[8]')
+spark = SQLContext(sc)
+import seaborn as sn
+sn.set_style("darkgrid")
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+city = spark.sql("SELECT user.location as city FROM tweets WHERE user.location != 'null' and user.location != 'United States' and  user.location != 'USA'")
+city.createOrReplaceTempView("citys")
+city_count = city.groupBy('city').count()
+city_count = city_count.toPandas()
+Top_city = city_count.query('count > 340').reset_index().sort_values('count', ascending=False)
+sn.barplot(x='count', y='city', data=Top_city)
+
+
 3) Time series beer tweets by sporting events/other large beer consumption activites (Octoberfest)
 Jack
 
@@ -19,8 +54,42 @@ temp.coalesce(1).write.json("/tweetCountByDate")
 
 4) Top beers/brands by locality
 Jason
-5) Top verified twitter users that drink/hashtag/tweet about beer
+5) Top favorited twitter who tweet about beer
 Max
+
+SPARK
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+val fav = spark.sql("SELECT user.name, text, user.favourites_count FROM tweets")
+var fav_n = fav.filter($"text".contains("beer"))
+var fav_new = fav_n.orderBy(desc("favourites_count"))
+
+PYSPARK
+
+import findspark
+findspark.init()
+import pyspark as ps
+import warnings
+from pyspark.sql import SQLContext
+sc = ps.SparkContext('local[8]')
+spark = SQLContext(sc)
+import seaborn as sn
+sn.set_style("darkgrid")
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+fav = spark.sql("SELECT user.name, text, user.favourites_count FROM tweets")
+fav = fav.filter(fav.text.contains('beer'))
+fav = fav.dropDuplicates(['name'])
+fav.count()
+fav = fav.toPandas()
+Top_fav = fav.query('favourites_count > 1000').reset_index().sort_values('favourites_count', ascending=False)
+sn.barplot(x='favourites_count', y='name', data=Top_fav)
+
 6) Statistics regarding beer tweets with multimedia
 Jack
 
@@ -33,8 +102,40 @@ temp.show()
 temp.coalesce(1).write.json("/mediaUrls")
 
 
-7) Beer by language (e.g. what are the top beers for tweets by a given language?)
+7) Beer by language (Top tweets from different language except ENGLISH)
 Max
+
+SPARK:
+
+import org.apache.hadoop.fs.{FileSystem,Path}
+FileSystem.get(sc.hadoopConfiguration).listStatus(new Path("hdfs://")).foreach(x => println(x.getPath))
+val df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+val lang_count = spark.sql("SELECT user.lang as langs, COUNT(*) AS counts FROM tweets GROUP BY langs ORDER BY counts")
+var lang = lang_count.orderBy(desc("counts"))
+
+PYSPARK
+
+import findspark
+findspark.init()
+import pyspark as ps
+import warnings
+from pyspark.sql import SQLContext
+sc = ps.SparkContext('local[8]')
+spark = SQLContext(sc)
+import seaborn as sn
+sn.set_style("darkgrid")
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+df = spark.read.json("hdfs://localhost:9000/input_dir/tweets.json")
+df.createOrReplaceTempView("tweets")
+lang = spark.sql("SELECT user.lang as langs FROM tweets WHERE user.lang != 'en' and user.lang != 'en-gb' and user.lang != 'en-GB'")
+lang_count = lang.groupBy('langs').count()
+lang_count.count()
+lang_count = lang_count.toPandas()
+Top_lang = lang_count.query('count > 100').reset_index().sort_values('count', ascending=False)
+sn.barplot(x='count', y='langs', data=Top_lang)
+
 8) User mentions / brand mentions
 Jason and Jack
 
