@@ -11,3 +11,27 @@ Apache Hadoop and Apache Spark(python) hashtag/url word counts were run on the s
 Apache Spark hashtag/url word counts were also run in scala on a different set of collected tweets where 'data' was also the key term. The extraction/wordcount code and log files for these runs can be found under SparkWordCount/scala
 		
 Output for all three runs can be found in the output subdirectories 
+
+Part 2:
+
+Queries using Apache Spark on Twitter data with the keyword beer. Queries include:
+
+1. Top brands by social media presence (tweet count, followers count, and favourites count)
+
+2. Cities that tweet the most about beer
+
+3. Beer tweet counts by date
+
+4. Top beer brands by locality (USA vs Other)
+
+5. Top favorited accounts that tweet about beer
+
+6. Multimedia beer tweets
+
+7. Top languages used in beer tweets besides English
+
+8. Top mentioned beer brands
+
+9. Beer tweet counts by hour 
+
+10. Distribution of tweets considered 'possibly sensitive'
